@@ -1,7 +1,7 @@
 // Store principal de la aplicación
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Patient, ClinicalRecord, Appointment, CalendarNote, Formula } from '../types';
+import { Patient, ClinicalRecord, Appointment, CalendarNote, Formula, Treatment, TreatmentSession, TreatmentType } from '../types';
 
 interface AppState {
   // Pacientes
@@ -11,7 +11,21 @@ interface AppState {
   deletePatient: (dni: string) => void;
   loadPatients: () => Promise<void>;
 
-  // Historias clínicas
+  // Tratamientos (nuevo)
+  treatments: Treatment[];
+  addTreatment: (treatment: Treatment) => void;
+  updateTreatment: (id: string, treatment: Partial<Treatment>) => void;
+  deleteTreatment: (id: string) => void;
+  loadTreatments: () => Promise<void>;
+
+  // Sesiones de tratamiento (nuevo)
+  treatmentSessions: TreatmentSession[];
+  addTreatmentSession: (session: TreatmentSession) => void;
+  updateTreatmentSession: (id: string, session: Partial<TreatmentSession>) => void;
+  deleteTreatmentSession: (id: string) => void;
+  loadTreatmentSessions: () => Promise<void>;
+
+  // Historias clínicas (legacy - mantener por compatibilidad)
   clinicalRecords: ClinicalRecord[];
   addClinicalRecord: (record: ClinicalRecord) => void;
   updateClinicalRecord: (id: string, record: Partial<ClinicalRecord>) => void;
@@ -47,6 +61,8 @@ interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
   // Initial states
   patients: [],
+  treatments: [],
+  treatmentSessions: [],
   clinicalRecords: [],
   appointments: [],
   calendarNotes: [],
@@ -85,7 +101,71 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  // Historias clínicas
+  // Tratamientos
+  addTreatment: async (treatment: Treatment) => {
+    const newTreatments = [...get().treatments, treatment];
+    set({ treatments: newTreatments });
+    await AsyncStorage.setItem('treatments', JSON.stringify(newTreatments));
+  },
+
+  updateTreatment: async (id: string, updates: Partial<Treatment>) => {
+    const newTreatments = get().treatments.map(t => 
+      t.id === id ? { ...t, ...updates } : t
+    );
+    set({ treatments: newTreatments });
+    await AsyncStorage.setItem('treatments', JSON.stringify(newTreatments));
+  },
+
+  deleteTreatment: async (id: string) => {
+    const newTreatments = get().treatments.filter(t => t.id !== id);
+    set({ treatments: newTreatments });
+    await AsyncStorage.setItem('treatments', JSON.stringify(newTreatments));
+  },
+
+  loadTreatments: async () => {
+    try {
+      const data = await AsyncStorage.getItem('treatments');
+      if (data) {
+        set({ treatments: JSON.parse(data) });
+      }
+    } catch (error) {
+      console.error('Error loading treatments:', error);
+    }
+  },
+
+  // Sesiones de tratamiento
+  addTreatmentSession: async (session: TreatmentSession) => {
+    const newSessions = [...get().treatmentSessions, session];
+    set({ treatmentSessions: newSessions });
+    await AsyncStorage.setItem('treatmentSessions', JSON.stringify(newSessions));
+  },
+
+  updateTreatmentSession: async (id: string, updates: Partial<TreatmentSession>) => {
+    const newSessions = get().treatmentSessions.map(s => 
+      s.id === id ? { ...s, ...updates } : s
+    );
+    set({ treatmentSessions: newSessions });
+    await AsyncStorage.setItem('treatmentSessions', JSON.stringify(newSessions));
+  },
+
+  deleteTreatmentSession: async (id: string) => {
+    const newSessions = get().treatmentSessions.filter(s => s.id !== id);
+    set({ treatmentSessions: newSessions });
+    await AsyncStorage.setItem('treatmentSessions', JSON.stringify(newSessions));
+  },
+
+  loadTreatmentSessions: async () => {
+    try {
+      const data = await AsyncStorage.getItem('treatmentSessions');
+      if (data) {
+        set({ treatmentSessions: JSON.parse(data) });
+      }
+    } catch (error) {
+      console.error('Error loading treatment sessions:', error);
+    }
+  },
+
+  // Historias clínicas (legacy)
   addClinicalRecord: async (record: ClinicalRecord) => {
     const newRecords = [...get().clinicalRecords, record];
     set({ clinicalRecords: newRecords });
@@ -218,6 +298,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ isLoading: true });
     await Promise.all([
       get().loadPatients(),
+      get().loadTreatments(),
+      get().loadTreatmentSessions(),
       get().loadClinicalRecords(),
       get().loadAppointments(),
       get().loadCalendarNotes(),

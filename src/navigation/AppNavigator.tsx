@@ -1,4 +1,5 @@
 import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,10 +8,14 @@ import { PointsExplorerScreen } from '../screens/PointsExplorerScreen';
 import { FormulasScreen } from '../screens/FormulasScreen';
 import { ClinicalRecordsScreen } from '../screens/ClinicalRecordsScreen';
 import { ScheduleScreen } from '../screens/ScheduleScreen';
+import { useTheme, useThemeMode } from '../theme/useTheme';
 
 const Tab = createBottomTabNavigator();
 
 export const AppNavigator = () => {
+  const theme = useTheme();
+  const { isDark, toggle } = useThemeMode();
+  
   return (
     <NavigationContainer>
       <Tab.Navigator
@@ -37,23 +42,32 @@ export const AppNavigator = () => {
 
             return <Ionicons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: '#13ec80',
-          tabBarInactiveTintColor: '#999',
+          tabBarActiveTintColor: theme.primary,
+          tabBarInactiveTintColor: theme.textSecondary,
           tabBarStyle: {
             paddingBottom: 5,
             paddingTop: 5,
             height: 60,
+            backgroundColor: theme.background,
+            borderTopColor: theme.border,
           },
           tabBarLabelStyle: {
             fontSize: 12,
             fontWeight: '600',
+            color: theme.text,
           },
+          headerRight: () => (
+            <TouchableOpacity onPress={toggle} style={{ padding: 12 }}>
+              <Ionicons name={isDark ? 'sunny' : 'moon'} size={24} color={theme.headerText} />
+            </TouchableOpacity>
+          ),
           headerStyle: {
-            backgroundColor: '#13ec80',
+            backgroundColor: theme.headerBackground,
           },
-          headerTintColor: '#fff',
+          headerTintColor: theme.headerText,
           headerTitleStyle: {
             fontWeight: 'bold',
+            color: theme.headerText,
           },
         })}
       >

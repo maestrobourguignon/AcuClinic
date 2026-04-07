@@ -12,19 +12,20 @@ import {
 import { allPointsComplete } from '../data/pointsComplete';
 import { meridians } from '../data/meridians';
 import { Point } from '../types';
+import { useTheme } from '../theme/useTheme';
+import { Ionicons } from '@expo/vector-icons';
 
 export const PointsExplorerScreen = () => {
+  const theme = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMeridian, setSelectedMeridian] = useState<string | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
+  const [showMeridianFilter, setShowMeridianFilter] = useState(false);
 
   const filteredPoints = useMemo(() => {
     let result = allPointsComplete;
 
-    if (selectedMeridian) {
-      result = result.filter(p => p.meridianId === selectedMeridian);
-    }
-
+    // Si hay búsqueda, buscar en TODOS los puntos (ignorar filtro de meridiano)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -36,6 +37,9 @@ export const PointsExplorerScreen = () => {
           (typeof p.indications === 'string' && p.indications.toLowerCase().includes(query)) ||
           (typeof p.treatments === 'string' && p.treatments.toLowerCase().includes(query))
       );
+    } else if (selectedMeridian) {
+      // Si no hay búsqueda, aplicar filtro de meridiano
+      result = result.filter(p => p.meridianId === selectedMeridian);
     }
 
     return result;
@@ -46,67 +50,115 @@ export const PointsExplorerScreen = () => {
     return meridian ? meridian.name : id;
   };
 
+  const activeFilterCount = selectedMeridian ? 1 : 0;
+
   const renderPoint = ({ item }: { item: Point }) => (
     <TouchableOpacity
       style={[
         styles.pointItem,
-        selectedPoint?.id === item.id && styles.pointItemSelected,
+        { backgroundColor: theme.surface },
+        selectedPoint?.id === item.id && { borderColor: theme.primary, borderWidth: 2 },
       ]}
       onPress={() => setSelectedPoint(item)}
     >
       <View style={styles.pointHeader}>
-        <Text style={styles.pointId}>{item.id}</Text>
-        <Text style={styles.pointName}>{item.name}</Text>
+        <Text style={[styles.pointId, { color: theme.primary }]}>{item.id}</Text>
+        <Text style={[styles.pointName, { color: theme.text }]}>{item.name}</Text>
       </View>
-      <Text style={styles.pointChinese}>{item.nameChinese}</Text>
+      <Text style={[styles.pointChinese, { color: theme.textSecondary }]}>{item.nameChinese}</Text>
+      <Text style={[styles.pointMeridian, { color: theme.textSecondary }]}>
+        {getMeridianName(item.meridianId)}
+      </Text>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Explorador de Puntos</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Header con búsqueda */}
+      <View style={[styles.header, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <Text style={[styles.title, { color: theme.text }]}>Explorador de Puntos</Text>
         <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar puntos..."
+          style={[styles.searchInput, { backgroundColor: theme.background, color: theme.text, borderColor: theme.border }]}
+          placeholder="Buscar puntos en todos los meridianos..."
+          placeholderTextColor={theme.textSecondary}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholderTextColor="#666"
         />
       </View>
 
-      {/* Selector de meridiano */}
-      <View style={styles.selectorContainer}>
-        <Text style={styles.selectorLabel}>Filtrar por meridiano:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
-          <TouchableOpacity
-            style={[
-              styles.meridianChip,
-              selectedMeridian === null && styles.meridianChipSelected,
-            ]}
-            onPress={() => setSelectedMeridian(null)}
-          >
-            <Text style={[
-              styles.meridianChipText,
-              selectedMeridian === null && styles.meridianChipTextSelected,
-            ]}>Todos</Text>
-          </TouchableOpacity>
-          {meridians.map((m) => (
+      {/* Barra desplegable de filtro por meridiano */}
+      <View style={[styles.filterBar, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <TouchableOpacity
+          style={styles.filterToggle}
+          onPress={() => setShowMeridianFilter(!showMeridianFilter)}
+        >
+          <Ionicons name="filter" size={18} color={theme.primary} />
+          <Text style={[styles.filterToggleText, { color: theme.text }]}>
+            Filtrar por meridiano
+          </Text>
+          {activeFilterCount > 0 && (
+            <View style={[styles.filterBadge, { backgroundColor: theme.primary }]}>
+              <Text style={[styles.filterBadgeText, { color: theme.primaryText }]}>{activeFilterCount}</Text>
+            </View>
+          )}
+          <Ionicons
+            name={showMeridianFilter ? 'chevron-up' : 'chevron-down'}
+            size={18}
+            color={theme.textSecondary}
+          />
+        </TouchableOpacity>
+
+        {showMeridianFilter && (
+          <View style={styles.filterContent}>
             <TouchableOpacity
-              key={m.id}
               style={[
                 styles.meridianChip,
-                selectedMeridian === m.id && styles.meridianChipSelected,
+                { backgroundColor: theme.background },
+                selectedMeridian === null && { backgroundColor: theme.primary },
               ]}
-              onPress={() => setSelectedMeridian(m.id)}
+              onPress={() => setSelectedMeridian(null)}
             >
               <Text style={[
                 styles.meridianChipText,
-                selectedMeridian === m.id && styles.meridianChipTextSelected,
-              ]}>{m.name}</Text>
+                { color: theme.textSecondary },
+                selectedMeridian === null && { color: theme.primaryText, fontWeight: 'bold' },
+              ]}>Todos</Text>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
+            <View style={styles.meridianGrid}>
+              {meridians.map((m) => (
+                <TouchableOpacity
+                  key={m.id}
+                  style={[
+                    styles.meridianChip,
+                    { backgroundColor: theme.background },
+                    selectedMeridian === m.id && { backgroundColor: theme.primary },
+                  ]}
+                  onPress={() => setSelectedMeridian(m.id)}
+                >
+                  <Text style={[
+                    styles.meridianChipText,
+                    { color: theme.textSecondary },
+                    selectedMeridian === m.id && { color: theme.primaryText, fontWeight: 'bold' },
+                  ]}>{m.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* Contador de resultados */}
+      <View style={[styles.resultsBar, { backgroundColor: theme.background }]}>
+        <Text style={[styles.resultsText, { color: theme.textSecondary }]}>
+          {filteredPoints.length} punto{filteredPoints.length !== 1 ? 's' : ''}
+          {searchQuery && ' · buscando en todos los meridianos'}
+          {!searchQuery && selectedMeridian && ` · ${getMeridianName(selectedMeridian)}`}
+        </Text>
+        {searchQuery && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Text style={[styles.clearSearch, { color: theme.primary }]}>Limpiar</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Lista de puntos */}
@@ -116,28 +168,39 @@ export const PointsExplorerScreen = () => {
         renderItem={renderPoint}
         style={styles.pointsList}
         contentContainerStyle={styles.pointsListContent}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No se encontraron puntos</Text>
+          <View style={styles.emptyContainer}>
+            <Ionicons name="search-outline" size={48} color={theme.textSecondary} />
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No se encontraron puntos</Text>
+            {searchQuery && (
+              <Text style={[styles.emptySubtext, { color: theme.textSecondary }]}>
+                Intentá con otro término de búsqueda
+              </Text>
+            )}
+          </View>
         }
       />
 
       {/* Detalle del punto seleccionado */}
       {selectedPoint && (
-        <View style={styles.detailPanel}>
+        <View style={[styles.detailPanel, { backgroundColor: theme.surface, borderTopColor: theme.primary }]}>
           <View style={styles.detailHeader}>
-            <Text style={styles.detailId}>{selectedPoint.id}</Text>
-            <Text style={styles.detailName}>{selectedPoint.name}</Text>
-            <Text style={styles.detailChinese}>{selectedPoint.nameChinese}</Text>
-            <Text style={styles.detailMeridian}>{getMeridianName(selectedPoint.meridianId)}</Text>
+            <Text style={[styles.detailId, { color: theme.primary }]}>{selectedPoint.id}</Text>
+            <Text style={[styles.detailName, { color: theme.text }]}>{selectedPoint.name}</Text>
+            <Text style={[styles.detailChinese, { color: theme.textSecondary }]}>{selectedPoint.nameChinese}</Text>
+            <Text style={[styles.detailMeridian, { color: theme.primary }]}>
+              {getMeridianName(selectedPoint.meridianId)}
+            </Text>
           </View>
 
-          <Text style={styles.detailLabel}>Ubicación:</Text>
-          <Text style={styles.detailLocation}>{selectedPoint.location}</Text>
+          <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Ubicación:</Text>
+          <Text style={[styles.detailLocation, { color: theme.text }]}>{selectedPoint.location}</Text>
 
           {selectedPoint.indications && (
             <>
-              <Text style={styles.detailLabel}>Indicaciones:</Text>
-              <Text style={styles.detailIndications}>
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Indicaciones:</Text>
+              <Text style={[styles.detailIndications, { color: theme.text }]}>
                 {typeof selectedPoint.indications === 'string'
                   ? selectedPoint.indications
                   : selectedPoint.indications.join(', ')}
@@ -147,25 +210,25 @@ export const PointsExplorerScreen = () => {
 
           {selectedPoint.treatments && (
             <>
-              <Text style={styles.detailLabel}>Tratamientos:</Text>
+              <Text style={[styles.detailLabel, { color: theme.textSecondary }]}>Tratamientos:</Text>
               <View style={styles.treatmentsContainer}>
                 {Array.isArray(selectedPoint.treatments)
                   ? selectedPoint.treatments.map((t, i) => (
-                    <View key={i} style={styles.treatmentChip}>
-                      <Text style={styles.treatmentText}>{t}</Text>
+                    <View key={i} style={[styles.treatmentChip, { backgroundColor: theme.background }]}>
+                      <Text style={[styles.treatmentText, { color: theme.primary }]}>{t}</Text>
                     </View>
                   ))
-                  : <Text style={styles.detailTreatments}>{selectedPoint.treatments}</Text>
+                  : <Text style={[styles.detailTreatments, { color: theme.text }]}>{selectedPoint.treatments}</Text>
                 }
               </View>
             </>
           )}
 
           <TouchableOpacity
-            style={styles.closeButton}
+            style={[styles.closeButton, { backgroundColor: theme.background }]}
             onPress={() => setSelectedPoint(null)}
           >
-            <Text style={styles.closeButtonText}>Cerrar</Text>
+            <Text style={[styles.closeButtonText, { color: theme.textSecondary }]}>Cerrar</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -176,72 +239,77 @@ export const PointsExplorerScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  selectorContainer: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  selectorLabel: {
-    fontSize: 12,
-    color: '#666',
-    marginBottom: 6,
-  },
-  selectorScroll: {
-    flexGrow: 0,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
   },
   searchInput: {
-    backgroundColor: '#f0f0f0',
     borderRadius: 10,
     padding: 12,
     fontSize: 16,
-    color: '#333',
+    borderWidth: 1,
   },
-  meridianList: {
-    backgroundColor: '#fff',
-    paddingVertical: 2,
+  filterBar: {
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
-  meridianListContent: {
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    flexGrow: 0,
+  filterToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    gap: 8,
+  },
+  filterToggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    flex: 1,
+  },
+  filterBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    minWidth: 20,
     alignItems: 'center',
   },
-  meridianChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    marginHorizontal: 3,
-    borderRadius: 12,
-    backgroundColor: '#f0f0f0',
-    flexGrow: 0,
-    flexShrink: 0,
+  filterBadgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
   },
-  meridianChipSelected: {
-    backgroundColor: '#13ec80',
+  filterContent: {
+    padding: 12,
+    paddingTop: 0,
+  },
+  meridianGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  meridianChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
   meridianChipText: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 13,
   },
-  meridianChipTextSelected: {
-    color: '#fff',
+  resultsBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  resultsText: {
+    fontSize: 12,
+  },
+  clearSearch: {
+    fontSize: 12,
     fontWeight: 'bold',
   },
   pointsList: {
@@ -251,19 +319,10 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   pointItem: {
-    backgroundColor: '#fff',
     padding: 12,
     marginVertical: 4,
     marginHorizontal: 4,
     borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  pointItemSelected: {
-    backgroundColor: '#e8f5e9',
-    borderColor: '#13ec80',
-    borderWidth: 2,
   },
   pointHeader: {
     flexDirection: 'row',
@@ -272,28 +331,36 @@ const styles = StyleSheet.create({
   pointId: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#13ec80',
     marginRight: 8,
   },
   pointName: {
     fontSize: 16,
-    color: '#333',
   },
   pointChinese: {
     fontSize: 14,
-    color: '#666',
     fontStyle: 'italic',
+    marginTop: 2,
+  },
+  pointMeridian: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    marginTop: 60,
+    gap: 8,
   },
   emptyText: {
+    fontSize: 16,
     textAlign: 'center',
-    color: '#666',
-    marginTop: 20,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    textAlign: 'center',
   },
   detailPanel: {
-    backgroundColor: '#fff',
     padding: 16,
     borderTopWidth: 2,
-    borderTopColor: '#13ec80',
   },
   detailHeader: {
     alignItems: 'center',
@@ -302,37 +369,30 @@ const styles = StyleSheet.create({
   detailId: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#13ec80',
   },
   detailName: {
     fontSize: 20,
-    color: '#333',
     fontWeight: 'bold',
   },
   detailChinese: {
     fontSize: 16,
-    color: '#666',
     fontStyle: 'italic',
   },
   detailMeridian: {
     fontSize: 14,
-    color: '#13ec80',
     marginTop: 4,
   },
   detailLabel: {
     fontSize: 14,
-    color: '#666',
     fontWeight: 'bold',
     marginTop: 12,
   },
   detailLocation: {
     fontSize: 16,
-    color: '#333',
     lineHeight: 22,
   },
   detailIndications: {
     fontSize: 14,
-    color: '#333',
     marginTop: 4,
     lineHeight: 20,
   },
@@ -343,31 +403,26 @@ const styles = StyleSheet.create({
     marginHorizontal: -4,
   },
   treatmentChip: {
-    backgroundColor: '#e8f5e9',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     margin: 4,
   },
   treatmentText: {
-    color: '#13ec80',
     fontSize: 12,
     fontWeight: '600',
   },
   detailTreatments: {
     fontSize: 14,
-    color: '#333',
     marginTop: 4,
   },
   closeButton: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#f0f0f0',
     borderRadius: 8,
     alignItems: 'center',
   },
   closeButtonText: {
-    color: '#666',
     fontWeight: 'bold',
   },
 });

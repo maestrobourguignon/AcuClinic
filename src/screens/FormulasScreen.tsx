@@ -12,12 +12,14 @@ import {
   Alert,
 } from 'react-native';
 import { formulas } from '../data/formulas';
-import { protocols, organs } from '../data/protocols';
+import { protocols } from '../data/protocols';
 import { allPoints } from '../data/points';
 import { useAppStore } from '../store/useAppStore';
 import { Formula, FormulaPoint, Protocol, PointTechnique } from '../types';
+import { useTheme } from '../theme/useTheme';
 
 export const FormulasScreen = () => {
+  const theme = useTheme();
   const { customFormulas, addCustomFormula, deleteCustomFormula } = useAppStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -25,14 +27,11 @@ export const FormulasScreen = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showProtocolModal, setShowProtocolModal] = useState(false);
   
-  // Estado para crear fórmula
   const [newFormulaName, setNewFormulaName] = useState('');
   const [newFormulaDescription, setNewFormulaDescription] = useState('');
   const [selectedPoints, setSelectedPoints] = useState<FormulaPoint[]>([]);
   
-  // Estado para protocolo
   const [selectedProtocol, setSelectedProtocol] = useState<Protocol | null>(null);
-  const [selectedOrgan, setSelectedOrgan] = useState<string | null>(null);
 
   const allFormulas = useMemo(() => {
     return [...formulas, ...customFormulas];
@@ -103,16 +102,16 @@ export const FormulasScreen = () => {
     );
   };
 
-  const getTechniqueColor = (technique: PointTechnique) => {
+  const getTechniqueColor = (technique?: PointTechnique) => {
     switch (technique) {
-      case 'tonificar': return '#4CAF50';
-      case 'sedar': return '#F44336';
-      case 'moxar': return '#FF9800';
-      default: return '#666';
+      case 'tonificar': return theme.success;
+      case 'sedar': return theme.error;
+      case 'moxar': return theme.accent;
+      default: return theme.textSecondary;
     }
   };
 
-  const getTechniqueLabel = (technique: PointTechnique) => {
+  const getTechniqueLabel = (technique?: PointTechnique) => {
     switch (technique) {
       case 'tonificar': return 'Tonificar';
       case 'sedar': return 'Sedar';
@@ -123,78 +122,86 @@ export const FormulasScreen = () => {
 
   const renderFormula = ({ item }: { item: Formula }) => (
     <TouchableOpacity
-      style={styles.formulaItem}
+      style={[styles.formulaItem, { backgroundColor: theme.surface }]}
       onPress={() => setSelectedFormula(item)}
     >
       <View style={styles.formulaHeader}>
-        <Text style={styles.formulaName}>{item.name}</Text>
+        <Text style={[styles.formulaName, { color: theme.text }]}>{item.name}</Text>
         {item.isCustom && (
           <TouchableOpacity
             onPress={() => handleDeleteFormula(item.id)}
             style={styles.deleteButton}
           >
-            <Text style={styles.deleteButtonText}>✕</Text>
+            <Text style={[styles.deleteButtonText, { color: theme.error }]}>✕</Text>
           </TouchableOpacity>
         )}
       </View>
-      <Text style={styles.formulaDescription} numberOfLines={2}>
+      <Text style={[styles.formulaDescription, { color: theme.textSecondary }]} numberOfLines={2}>
         {item.description}
       </Text>
-      <Text style={styles.formulaPoints}>
+      <Text style={[styles.formulaPoints, { color: theme.textSecondary }]}>
         {item.points.length} puntos
       </Text>
       {item.category && (
-        <View style={styles.categoryBadge}>
-          <Text style={styles.categoryText}>{item.category}</Text>
+        <View style={[styles.categoryBadge, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.categoryText, { color: theme.primary }]}>{item.category}</Text>
         </View>
       )}
     </TouchableOpacity>
   );
 
+  const renderProtocol = ({ item }: { item: Protocol }) => (
+    <TouchableOpacity
+      style={[styles.protocolItem, { backgroundColor: theme.surface }]}
+      onPress={() => {
+        setSelectedProtocol(item);
+        setShowProtocolModal(true);
+      }}
+    >
+      <Text style={[styles.protocolName, { color: theme.text }]}>{item.name}</Text>
+      <Text style={[styles.protocolDescription, { color: theme.textSecondary }]} numberOfLines={3}>
+        {item.description}
+      </Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Fórmulas de Tratamiento</Text>
-        <View style={styles.buttonRow}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => setShowProtocolModal(true)}
-          >
-            <Text style={styles.actionButtonText}>Protocolos</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.createButton]}
-            onPress={() => setShowCreateModal(true)}
-          >
-            <Text style={[styles.actionButtonText, styles.createButtonText]}>+ Nueva</Text>
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.title, { color: theme.text }]}>Fórmulas de Tratamiento</Text>
+        <TouchableOpacity
+          style={[styles.createButton, { backgroundColor: theme.primary }]}
+          onPress={() => setShowCreateModal(true)}
+        >
+          <Text style={[styles.createButtonText, { color: theme.primaryText }]}>+ Nueva Fórmula</Text>
+        </TouchableOpacity>
       </View>
 
       <TextInput
-        style={styles.searchInput}
+        style={[styles.searchInput, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
         placeholder="Buscar fórmulas..."
+        placeholderTextColor={theme.textSecondary}
         value={searchQuery}
         onChangeText={setSearchQuery}
-        placeholderTextColor="#666"
       />
 
-      {/* Selector de categoría */}
-      <View style={styles.selectorContainer}>
-        <Text style={styles.selectorLabel}>Filtrar por categoría:</Text>
+      <View style={[styles.selectorContainer, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <Text style={[styles.selectorLabel, { color: theme.textSecondary }]}>Filtrar por categoría:</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.selectorScroll}>
           {categories.map((cat) => (
             <TouchableOpacity
               key={cat}
               style={[
                 styles.categoryChip,
-                (selectedCategory === cat || (cat === 'Todos' && selectedCategory === null)) && styles.categoryChipSelected,
+                { backgroundColor: theme.background },
+                (selectedCategory === cat || (cat === 'Todos' && selectedCategory === null)) && { backgroundColor: theme.primary },
               ]}
               onPress={() => setSelectedCategory(cat === 'Todos' ? null : cat)}
             >
               <Text style={[
                 styles.categoryChipText,
-                (selectedCategory === cat || (cat === 'Todos' && selectedCategory === null)) && styles.categoryChipTextSelected,
+                { color: theme.textSecondary },
+                (selectedCategory === cat || (cat === 'Todos' && selectedCategory === null)) && { color: theme.primaryText, fontWeight: 'bold' },
               ]}>{cat}</Text>
             </TouchableOpacity>
           ))}
@@ -208,25 +215,40 @@ export const FormulasScreen = () => {
         style={styles.formulasList}
         contentContainerStyle={styles.formulasListContent}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No se encontraron fórmulas</Text>
+          <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No se encontraron fórmulas</Text>
+        }
+        ListFooterComponent={
+          <>
+            {/* Sección de Protocolos */}
+            <View style={[styles.protocolSection, { backgroundColor: theme.background }]}>
+              <Text style={[styles.protocolSectionTitle, { color: theme.text }]}>Protocolos</Text>
+            </View>
+            <FlatList
+              data={protocols}
+              keyExtractor={item => item.id}
+              renderItem={renderProtocol}
+              scrollEnabled={false}
+              contentContainerStyle={styles.protocolListContent}
+            />
+          </>
         }
       />
 
       {/* Modal de detalle de fórmula */}
       <Modal visible={!!selectedFormula} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: theme.surface }]}>
             <ScrollView>
-              <Text style={styles.modalTitle}>{selectedFormula?.name}</Text>
-              <Text style={styles.modalDescription}>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>{selectedFormula?.name}</Text>
+              <Text style={[styles.modalDescription, { color: theme.textSecondary }]}>
                 {selectedFormula?.description}
               </Text>
               
-              <Text style={styles.modalSectionTitle}>Puntos:</Text>
+              <Text style={[styles.modalSectionTitle, { color: theme.text }]}>Puntos:</Text>
               {selectedFormula?.points.map((point, index) => (
-                <View key={index} style={styles.pointRow}>
-                  <Text style={styles.pointId}>{point.pointId}</Text>
-                  <Text style={styles.pointName}>
+                <View key={index} style={[styles.pointRow, { borderBottomColor: theme.border }]}>
+                  <Text style={[styles.pointId, { color: theme.primary }]}>{point.pointId}</Text>
+                  <Text style={[styles.pointName, { color: theme.text }]}>
                     {getPointDetails(point.pointId).name}
                   </Text>
                   <View style={[
@@ -241,10 +263,10 @@ export const FormulasScreen = () => {
               ))}
             </ScrollView>
             <TouchableOpacity
-              style={styles.closeModalButton}
+              style={[styles.closeModalButton, { backgroundColor: theme.background }]}
               onPress={() => setSelectedFormula(null)}
             >
-              <Text style={styles.closeModalButtonText}>Cerrar</Text>
+              <Text style={[styles.closeModalButtonText, { color: theme.textSecondary }]}>Cerrar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -252,43 +274,43 @@ export const FormulasScreen = () => {
 
       {/* Modal de crear fórmula */}
       <Modal visible={showCreateModal} animationType="slide">
-        <SafeAreaView style={styles.createModalContainer}>
-          <View style={styles.createModalHeader}>
-            <Text style={styles.createModalTitle}>Nueva Fórmula</Text>
+        <SafeAreaView style={[styles.createModalContainer, { backgroundColor: theme.background }]}>
+          <View style={[styles.createModalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <Text style={[styles.createModalTitle, { color: theme.text }]}>Nueva Fórmula</Text>
             <TouchableOpacity onPress={() => setShowCreateModal(false)}>
-              <Text style={styles.cancelText}>Cancelar</Text>
+              <Text style={[styles.cancelText, { color: theme.error }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={styles.createModalContent}>
-            <Text style={styles.inputLabel}>Nombre:</Text>
+          <ScrollView style={[styles.createModalContent, { backgroundColor: theme.background }]}>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Nombre:</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
               value={newFormulaName}
               onChangeText={setNewFormulaName}
               placeholder="Nombre de la fórmula"
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.textSecondary}
             />
             
-            <Text style={styles.inputLabel}>Descripción:</Text>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Descripción:</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
               value={newFormulaDescription}
               onChangeText={setNewFormulaDescription}
               placeholder="Descripción de la fórmula"
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={3}
             />
             
-            <Text style={styles.inputLabel}>Puntos ({selectedPoints.length}):</Text>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Puntos ({selectedPoints.length}):</Text>
             <FlatList
               data={selectedPoints}
               keyExtractor={(_, index) => index.toString()}
               renderItem={({ item, index }) => (
-                <View style={styles.selectedPointRow}>
-                  <Text style={styles.selectedPointId}>{item.pointId}</Text>
-                  <Text style={styles.selectedPointName}>
+                <View style={[styles.selectedPointRow, { backgroundColor: theme.surface }]}>
+                  <Text style={[styles.selectedPointId, { color: theme.primary }]}>{item.pointId}</Text>
+                  <Text style={[styles.selectedPointName, { color: theme.text }]}>
                     {getPointDetails(item.pointId).name}
                   </Text>
                   <View style={[
@@ -306,12 +328,12 @@ export const FormulasScreen = () => {
                       setSelectedPoints(newPoints);
                     }}
                   >
-                    <Text style={styles.removeText}>✕</Text>
+                    <Text style={[styles.removeText, { color: theme.error }]}>✕</Text>
                   </TouchableOpacity>
                 </View>
               )}
               ListEmptyComponent={
-                <Text style={styles.emptyPointsText}>
+                <Text style={[styles.emptyPointsText, { color: theme.textSecondary }]}>
                   Agregá puntos desde el Explorador de Puntos
                 </Text>
               }
@@ -319,40 +341,28 @@ export const FormulasScreen = () => {
           </ScrollView>
           
           <TouchableOpacity
-            style={styles.saveButton}
+            style={[styles.saveButton, { backgroundColor: theme.primary }]}
             onPress={handleCreateFormula}
           >
-            <Text style={styles.saveButtonText}>Guardar Fórmula</Text>
+            <Text style={[styles.saveButtonText, { color: theme.primaryText }]}>Guardar Fórmula</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </Modal>
 
-      {/* Modal de protocolos */}
+      {/* Modal de detalle de protocolo */}
       <Modal visible={showProtocolModal} animationType="slide">
-        <SafeAreaView style={styles.createModalContainer}>
-          <View style={styles.createModalHeader}>
-            <Text style={styles.createModalTitle}>Protocolos</Text>
+        <SafeAreaView style={[styles.createModalContainer, { backgroundColor: theme.background }]}>
+          <View style={[styles.createModalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <Text style={[styles.createModalTitle, { color: theme.text }]}>{selectedProtocol?.name}</Text>
             <TouchableOpacity onPress={() => setShowProtocolModal(false)}>
-              <Text style={styles.cancelText}>Cerrar</Text>
+              <Text style={[styles.cancelText, { color: theme.primary }]}>Cerrar</Text>
             </TouchableOpacity>
           </View>
           
-          <ScrollView style={styles.createModalContent}>
-            {protocols.map(protocol => (
-              <TouchableOpacity
-                key={protocol.id}
-                style={styles.protocolItem}
-                onPress={() => {
-                  setSelectedProtocol(protocol);
-                  setShowProtocolModal(false);
-                }}
-              >
-                <Text style={styles.protocolName}>{protocol.name}</Text>
-                <Text style={styles.protocolDescription} numberOfLines={3}>
-                  {protocol.description}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <ScrollView style={[styles.createModalContent, { backgroundColor: theme.background }]}>
+            <Text style={[styles.protocolDetailDescription, { color: theme.text }]}>
+              {selectedProtocol?.description}
+            </Text>
           </ScrollView>
         </SafeAreaView>
       </Modal>
@@ -363,71 +373,54 @@ export const FormulasScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     padding: 16,
-    backgroundColor: '#fff',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    marginHorizontal: -6,
-  },
-  actionButton: {
-    flex: 1,
-    padding: 12,
-    marginHorizontal: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#13ec80',
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    color: '#13ec80',
-    fontWeight: 'bold',
   },
   createButton: {
-    backgroundColor: '#13ec80',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   createButtonText: {
-    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
   },
   searchInput: {
-    backgroundColor: '#fff',
     marginHorizontal: 16,
     marginVertical: 12,
     padding: 12,
     borderRadius: 10,
     fontSize: 16,
-    color: '#333',
+    borderWidth: 1,
   },
-  categoryList: {
-    backgroundColor: '#fff',
+  selectorContainer: {
+    paddingHorizontal: 16,
     paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  selectorLabel: {
+    fontSize: 12,
+    marginBottom: 6,
+  },
+  selectorScroll: {
+    flexGrow: 0,
   },
   categoryChip: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     marginHorizontal: 4,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
-  },
-  categoryChipSelected: {
-    backgroundColor: '#13ec80',
   },
   categoryChipText: {
     fontSize: 14,
-    color: '#666',
-  },
-  categoryChipTextSelected: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
   formulasList: {
     flex: 1,
@@ -436,7 +429,6 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   formulaItem: {
-    backgroundColor: '#fff',
     padding: 16,
     marginVertical: 4,
     marginHorizontal: 4,
@@ -450,29 +442,24 @@ const styles = StyleSheet.create({
   formulaName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     flex: 1,
   },
   deleteButton: {
     padding: 4,
   },
   deleteButtonText: {
-    color: '#F44336',
     fontSize: 18,
   },
   formulaDescription: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
   },
   formulaPoints: {
     fontSize: 12,
-    color: '#999',
     marginTop: 4,
   },
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e8f5e9',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -480,12 +467,10 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 12,
-    color: '#13ec80',
     fontWeight: 'bold',
   },
   emptyText: {
     textAlign: 'center',
-    color: '#666',
     marginTop: 20,
   },
   modalOverlay: {
@@ -494,7 +479,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -503,18 +487,15 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   modalDescription: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 16,
   },
   modalSectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
   },
   pointRow: {
@@ -522,18 +503,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   pointId: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#13ec80',
     width: 50,
   },
   pointName: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
   },
   techniqueBadge: {
     paddingHorizontal: 12,
@@ -548,17 +526,14 @@ const styles = StyleSheet.create({
   closeModalButton: {
     marginTop: 20,
     padding: 16,
-    backgroundColor: '#f0f0f0',
     borderRadius: 8,
     alignItems: 'center',
   },
   closeModalButtonText: {
-    color: '#666',
     fontWeight: 'bold',
   },
   createModalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   createModalHeader: {
     flexDirection: 'row',
@@ -566,15 +541,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   createModalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
   },
   cancelText: {
-    color: '#F44336',
     fontSize: 16,
   },
   createModalContent: {
@@ -584,16 +556,14 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
     marginTop: 16,
   },
   input: {
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#333',
+    borderWidth: 1,
   },
   textArea: {
     minHeight: 80,
@@ -603,18 +573,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
     marginBottom: 8,
   },
   selectedPointId: {
     fontWeight: 'bold',
-    color: '#13ec80',
     width: 50,
   },
   selectedPointName: {
     flex: 1,
-    color: '#333',
   },
   smallTechniqueBadge: {
     paddingHorizontal: 8,
@@ -628,41 +595,52 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   removeText: {
-    color: '#F44336',
     fontSize: 16,
     fontWeight: 'bold',
   },
   emptyPointsText: {
-    color: '#999',
     textAlign: 'center',
     marginTop: 16,
   },
   saveButton: {
     margin: 16,
     padding: 16,
-    backgroundColor: '#13ec80',
     borderRadius: 8,
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
   },
+  // Protocolos
+  protocolSection: {
+    padding: 16,
+    paddingBottom: 8,
+  },
+  protocolSectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  protocolListContent: {
+    padding: 8,
+    paddingTop: 0,
+  },
   protocolItem: {
     padding: 16,
-    backgroundColor: '#f5f5f5',
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 8,
+    marginHorizontal: 4,
   },
   protocolName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   protocolDescription: {
     fontSize: 14,
-    color: '#666',
     marginTop: 4,
+  },
+  protocolDetailDescription: {
+    fontSize: 16,
+    lineHeight: 24,
   },
 });

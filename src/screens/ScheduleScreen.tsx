@@ -14,8 +14,10 @@ import {
 import { Calendar, DateData } from 'react-native-calendars';
 import { useAppStore } from '../store/useAppStore';
 import { Appointment, CalendarNote } from '../types';
+import { useTheme } from '../theme/useTheme';
 
 export const ScheduleScreen = () => {
+  const theme = useTheme();
   const {
     appointments,
     calendarNotes,
@@ -33,7 +35,6 @@ export const ScheduleScreen = () => {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
-  // Form state
   const [newAppointment, setNewAppointment] = useState({
     patientDni: '',
     patientName: '',
@@ -48,17 +49,15 @@ export const ScheduleScreen = () => {
   const markedDates = useMemo(() => {
     const marks: { [key: string]: { marked: boolean; dotColor: string; selected?: boolean; selectedColor?: string } } = {};
 
-    // Agregar appointments
     appointments.forEach(apt => {
       const dateKey = apt.date.split('T')[0];
       marks[dateKey] = {
         ...marks[dateKey],
         marked: true,
-        dotColor: '#13ec80',
+        dotColor: theme.primary,
       };
     });
 
-    // Agregar notas
     calendarNotes.forEach(note => {
       const dateKey = note.date.split('T')[0];
       marks[dateKey] = {
@@ -68,19 +67,18 @@ export const ScheduleScreen = () => {
       };
     });
 
-    // Agregar fecha seleccionada
     if (selectedDate) {
       marks[selectedDate] = {
         ...marks[selectedDate],
         selected: true,
-        selectedColor: '#13ec80',
+        selectedColor: theme.primary,
         marked: marks[selectedDate]?.marked || false,
-        dotColor: marks[selectedDate]?.dotColor || '#13ec80',
+        dotColor: marks[selectedDate]?.dotColor || theme.primary,
       };
     }
 
     return marks;
-  }, [appointments, calendarNotes, selectedDate]);
+  }, [appointments, calendarNotes, selectedDate, theme.primary]);
 
   const dayAppointments = useMemo(() => {
     return appointments
@@ -157,26 +155,21 @@ export const ScheduleScreen = () => {
     );
   };
 
-  const getPatientName = (dni: string) => {
-    const patient = patients.find(p => p.dni === dni);
-    return patient ? patient.name : dni;
-  };
-
   const renderAppointment = ({ item }: { item: Appointment }) => (
     <TouchableOpacity
-      style={styles.appointmentItem}
+      style={[styles.appointmentItem, { backgroundColor: theme.surface }]}
       onPress={() => setSelectedAppointment(item)}
     >
       <View style={styles.appointmentTime}>
-        <Text style={styles.timeText}>{item.time}</Text>
+        <Text style={[styles.timeText, { color: theme.primary }]}>{item.time}</Text>
       </View>
       <View style={styles.appointmentInfo}>
-        <Text style={styles.patientName}>{item.patientName}</Text>
+        <Text style={[styles.patientName, { color: theme.text }]}>{item.patientName}</Text>
         {item.patientDni && (
-          <Text style={styles.patientDni}>DNI: {item.patientDni}</Text>
+          <Text style={[styles.patientDni, { color: theme.textSecondary }]}>DNI: {item.patientDni}</Text>
         )}
         {item.notes && (
-          <Text style={styles.appointmentNotes} numberOfLines={2}>
+          <Text style={[styles.appointmentNotes, { color: theme.textSecondary }]} numberOfLines={2}>
             {item.notes}
           </Text>
         )}
@@ -191,8 +184,8 @@ export const ScheduleScreen = () => {
   );
 
   const renderNote = ({ item }: { item: CalendarNote }) => (
-    <View style={styles.noteItem}>
-      <Text style={styles.noteContent}>{item.content}</Text>
+    <View style={[styles.noteItem, { backgroundColor: theme.surface }]}>
+      <Text style={[styles.noteContent, { color: theme.text }]}>{item.content}</Text>
       <TouchableOpacity
         onPress={() => handleDeleteNote(item.id)}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -203,42 +196,51 @@ export const ScheduleScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Agenda de Turnos</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.title, { color: theme.text }]}>Agenda de Turnos</Text>
       </View>
 
       <Calendar
         onDayPress={(day: DateData) => setSelectedDate(day.dateString)}
         markedDates={markedDates}
         theme={{
-          todayTextColor: '#13ec80',
-          selectedDayBackgroundColor: '#13ec80',
-          arrowColor: '#13ec80',
+          backgroundColor: theme.surface,
+          calendarBackground: theme.surface,
+          textSectionTitleColor: theme.textSecondary,
+          selectedDayTextColor: theme.primaryText,
+          dayTextColor: theme.text,
+          textDisabledColor: theme.textSecondary,
+          dotColor: theme.primary,
+          selectedDotColor: theme.primaryText,
+          arrowColor: theme.primary,
+          monthTextColor: theme.text,
           textDayFontWeight: '400',
           textMonthFontWeight: 'bold',
           textDayHeaderFontWeight: '500',
+          todayTextColor: theme.primary,
+          selectedDayBackgroundColor: theme.primary,
         }}
-        style={styles.calendar}
+        style={[styles.calendar, { backgroundColor: theme.surface }]}
       />
 
-      <View style={styles.actionsRow}>
+      <View style={[styles.actionsRow, { backgroundColor: theme.surface }]}>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, { backgroundColor: theme.primary }]}
           onPress={() => setShowAppointmentModal(true)}
         >
-          <Text style={styles.actionButtonText}>+ Turno</Text>
+          <Text style={[styles.actionButtonText, { color: theme.primaryText }]}>+ Turno</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionButton, styles.noteButton]}
           onPress={() => setShowNoteModal(true)}
         >
-          <Text style={[styles.actionButtonText, styles.noteButtonText]}>+ Nota</Text>
+          <Text style={[styles.actionButtonText, { color: '#fff' }]}>+ Nota</Text>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.daySection}>
-        <Text style={styles.dayTitle}>
+      <View style={[styles.daySection, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+        <Text style={[styles.dayTitle, { color: theme.text }]}>
           {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-AR', {
             weekday: 'long',
             day: 'numeric',
@@ -254,11 +256,11 @@ export const ScheduleScreen = () => {
         style={styles.list}
         ListHeaderComponent={
           dayNotes.length > 0 ? (
-            <View style={styles.notesSection}>
-              <Text style={styles.sectionTitle}>Notas</Text>
+            <View style={[styles.notesSection, { backgroundColor: theme.background }]}>
+              <Text style={[styles.sectionTitle, { color: '#FF9800' }]}>Notas</Text>
               {dayNotes.map(note => (
-                <View key={note.id} style={styles.noteItem}>
-                  <Text style={styles.noteContent}>{note.content}</Text>
+                <View key={note.id} style={[styles.noteItem, { backgroundColor: theme.surface }]}>
+                  <Text style={[styles.noteContent, { color: theme.text }]}>{note.content}</Text>
                   <TouchableOpacity
                     onPress={() => handleDeleteNote(note.id)}
                   >
@@ -271,99 +273,99 @@ export const ScheduleScreen = () => {
         }
         ListEmptyComponent={
           dayAppointments.length === 0 && dayNotes.length === 0 ? (
-            <Text style={styles.emptyText}>No hay turnos ni notas para este día</Text>
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No hay turnos ni notas para este día</Text>
           ) : null
         }
       />
 
       {/* Modal de nuevo turno */}
       <Modal visible={showAppointmentModal} animationType="slide">
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Nuevo Turno</Text>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.background }]}>
+          <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Nuevo Turno</Text>
             <TouchableOpacity onPress={() => setShowAppointmentModal(false)}>
-              <Text style={styles.cancelText}>Cancelar</Text>
+              <Text style={[styles.cancelText, { color: theme.primary }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.modalContent}>
-            <Text style={styles.inputLabel}>DNI del Paciente *</Text>
+          <ScrollView style={[styles.modalContent, { backgroundColor: theme.background }]}>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>DNI del Paciente *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
               value={newAppointment.patientDni}
               onChangeText={text => setNewAppointment({ ...newAppointment, patientDni: text })}
               placeholder="Número de documento"
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.textSecondary}
               keyboardType="numeric"
             />
 
-            <Text style={styles.inputLabel}>Nombre del Paciente</Text>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Nombre del Paciente</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
               value={newAppointment.patientName}
               onChangeText={text => setNewAppointment({ ...newAppointment, patientName: text })}
               placeholder="Nombre (opcional si está registrado)"
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.textSecondary}
             />
 
-            <Text style={styles.inputLabel}>Horario *</Text>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Horario *</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
               value={newAppointment.time}
               onChangeText={text => setNewAppointment({ ...newAppointment, time: text })}
               placeholder="HH:MM (ej: 14:30)"
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.textSecondary}
             />
 
-            <Text style={styles.inputLabel}>Notas</Text>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Notas</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
               value={newAppointment.notes}
               onChangeText={text => setNewAppointment({ ...newAppointment, notes: text })}
               placeholder="Notas adicionales"
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={3}
             />
           </ScrollView>
 
           <TouchableOpacity
-            style={styles.saveButton}
+            style={[styles.saveButton, { backgroundColor: theme.primary }]}
             onPress={handleAddAppointment}
           >
-            <Text style={styles.saveButtonText}>Guardar Turno</Text>
+            <Text style={[styles.saveButtonText, { color: theme.primaryText }]}>Guardar Turno</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </Modal>
 
       {/* Modal de nota */}
       <Modal visible={showNoteModal} animationType="slide">
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Nueva Nota</Text>
+        <SafeAreaView style={[styles.modalContainer, { backgroundColor: theme.background }]}>
+          <View style={[styles.modalHeader, { backgroundColor: theme.surface, borderBottomColor: theme.border }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Nueva Nota</Text>
             <TouchableOpacity onPress={() => setShowNoteModal(false)}>
-              <Text style={styles.cancelText}>Cancelar</Text>
+              <Text style={[styles.cancelText, { color: theme.primary }]}>Cancelar</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.modalContent}>
-            <Text style={styles.inputLabel}>Contenido</Text>
+          <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
+            <Text style={[styles.inputLabel, { color: theme.text }]}>Contenido</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: theme.surface, color: theme.text, borderColor: theme.border }]}
               value={newNote.content}
               onChangeText={text => setNewNote({ ...newNote, content: text })}
               placeholder="Escribe tu nota..."
-              placeholderTextColor="#999"
+              placeholderTextColor={theme.textSecondary}
               multiline
               numberOfLines={6}
             />
           </View>
 
           <TouchableOpacity
-            style={styles.saveButton}
+            style={[styles.saveButton, { backgroundColor: '#FF9800' }]}
             onPress={handleAddNote}
           >
-            <Text style={styles.saveButtonText}>Guardar Nota</Text>
+            <Text style={[styles.saveButtonText, { color: '#fff' }]}>Guardar Nota</Text>
           </TouchableOpacity>
         </SafeAreaView>
       </Modal>
@@ -374,56 +376,43 @@ export const ScheduleScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     padding: 16,
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
   },
   calendar: {
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: 'transparent',
   },
   actionsRow: {
     flexDirection: 'row',
     padding: 12,
     marginHorizontal: -6,
-    backgroundColor: '#fff',
   },
   actionButton: {
     flex: 1,
     padding: 12,
     marginHorizontal: 6,
-    backgroundColor: '#13ec80',
     borderRadius: 8,
     alignItems: 'center',
   },
   actionButtonText: {
-    color: '#fff',
     fontWeight: 'bold',
   },
   noteButton: {
     backgroundColor: '#FF9800',
   },
-  noteButtonText: {
-    color: '#fff',
-  },
   daySection: {
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   dayTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
     textTransform: 'capitalize',
   },
   list: {
@@ -431,7 +420,6 @@ const styles = StyleSheet.create({
   },
   appointmentItem: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
     marginHorizontal: 12,
     marginVertical: 4,
     padding: 12,
@@ -445,7 +433,6 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#13ec80',
   },
   appointmentInfo: {
     flex: 1,
@@ -454,15 +441,12 @@ const styles = StyleSheet.create({
   patientName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
   },
   patientDni: {
     fontSize: 12,
-    color: '#666',
   },
   appointmentNotes: {
     fontSize: 12,
-    color: '#999',
     marginTop: 4,
   },
   deleteText: {
@@ -476,12 +460,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#FF9800',
     marginBottom: 8,
   },
   noteItem: {
     flexDirection: 'row',
-    backgroundColor: '#FFF3E0',
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -490,7 +472,6 @@ const styles = StyleSheet.create({
   noteContent: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
   },
   deleteNoteText: {
     color: '#F44336',
@@ -499,28 +480,21 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     textAlign: 'center',
-    color: '#999',
     marginTop: 20,
+    fontSize: 14,
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
   },
   cancelText: {
-    color: '#F44336',
     fontSize: 16,
   },
   modalContent: {
@@ -528,33 +502,27 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   inputLabel: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
-    marginTop: 16,
+    marginTop: 12,
   },
   input: {
-    backgroundColor: '#f5f5f5',
+    borderWidth: 1,
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#333',
   },
   textArea: {
     minHeight: 100,
     textAlignVertical: 'top',
   },
   saveButton: {
-    margin: 16,
     padding: 16,
-    backgroundColor: '#13ec80',
-    borderRadius: 8,
     alignItems: 'center',
   },
   saveButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
     fontSize: 16,
+    fontWeight: 'bold',
   },
 });

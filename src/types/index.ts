@@ -20,7 +20,7 @@ export interface Meridian {
 export type PointTechnique = 'sedar' | 'tonificar' | 'moxar';
 
 export interface Point {
-  id: string; // ej: "1P", "36E"
+  id: string; // ej: "P1", "E36"
   number: number;
   name: string;
   nameChinese: string;
@@ -33,7 +33,7 @@ export interface Point {
 // Fórmulas de tratamiento
 export interface FormulaPoint {
   pointId: string;
-  technique?: PointTechnique; // Opcional para fórmulas predefinidas, requerido para personalizadas
+  technique?: PointTechnique;
 }
 
 export interface Formula {
@@ -41,7 +41,7 @@ export interface Formula {
   name: string;
   description: string;
   points: FormulaPoint[];
-  category?: string; // ej: "Gastralgia", "Asma", "Personal"
+  category?: string;
   isCustom?: boolean;
 }
 
@@ -55,25 +55,64 @@ export interface Protocol {
   organSelection?: boolean;
 }
 
+// ============================================
+// TIPOS DE PACIENTE Y TRATAMIENTOS
+// ============================================
+
+// Tipos de tratamiento
+export type TreatmentType = 'sindromico' | 'dolor' | 'otro';
+
 // Paciente
 export interface Patient {
   dni: string; // ID del paciente
-  name: string;
+  lastName: string;     // Apellido
+  firstName: string;    // Nombre
+  birthDate?: string;   // Fecha de nacimiento (YYYY-MM-DD)
   phone?: string;
   email?: string;
   notes?: string;
   createdAt: string;
 }
 
-// Historia clínica
+// Tratamiento (agrupa varias sesiones)
+export interface Treatment {
+  id: string;
+  patientDni: string;
+  type: TreatmentType;  // síndrome, dolor, otro
+  reason: string;       // Motivo de consulta
+  startDate: string;   // Fecha de inicio
+  endDate?: string;     // Fecha de fin (opcional)
+  notes?: string;
+  isActive: boolean;   // Si está en curso
+}
+
+// Sesión de tratamiento (cada visita)
+export interface TreatmentSession {
+  id: string;
+  treatmentId: string;
+  sessionNumber: number;  // 1, 2, 3... (secuencial dentro del tratamiento)
+  date: string;
+  // Primera sesión: estado actual del paciente
+  patientState?: string;  // Estado actual del paciente (solo sesión 1)
+  // Tratamiento realizado
+  treatment: string;
+  // Puntos utilizados
+  pointsUsed: FormulaPoint[];
+  // Cómo se sintió después
+  observations?: string;
+  // Notas adicionales
+  notes?: string;
+}
+
+// Historia clínica (deprecated - usar Treatment y TreatmentSession)
 export interface ClinicalRecord {
   id: string;
   patientDni: string;
   date: string;
-  reason: string; // Motivo de consulta
-  treatment: string; // Treatment applied
+  reason: string;
+  treatment: string;
   pointsUsed: FormulaPoint[];
-  observations: string; // Cómo se sintió después
+  observations: string;
   notes?: string;
 }
 
