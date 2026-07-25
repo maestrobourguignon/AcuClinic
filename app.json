@@ -22,6 +22,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "91eabbdf-67b4-46f4-b120-914a8da4866f"
+      }
+    },
+    "owner": "johnnybe"
   }
 }
