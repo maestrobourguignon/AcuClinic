@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "AcuClinic",
+    "slug": "acuclinic",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#13ec80",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.acuclinic.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#13ec80"
+      },
+      "package": "com.acuclinic.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
