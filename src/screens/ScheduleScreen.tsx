@@ -250,9 +250,9 @@ export const ScheduleScreen = () => {
       {/* Modal del día */}
       <Modal visible={showDayModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.dayModalContent(theme)}>
+          <View style={getDayModalContentStyle(theme)}>
             {/* Header con navegación */}
-            <View style={styles.dayModalHeader(theme)}>
+            <View style={getDayModalHeaderStyle(theme)}>
               <TouchableOpacity onPress={() => navigateDay('prev')} style={styles.navButton}>
                 <Ionicons name="chevron-back" size={28} color={theme.primary} />
               </TouchableOpacity>
@@ -458,6 +458,20 @@ export const ScheduleScreen = () => {
   );
 };
 
+// Dynamic style functions (theme-dependent)
+const getDayModalContentStyle = (theme: any) => ({
+  flex: 1,
+  backgroundColor: theme.background,
+});
+const getDayModalHeaderStyle = (theme: any) => ({
+  flexDirection: 'row' as const,
+  alignItems: 'center' as const,
+  padding: 12,
+  borderBottomWidth: 1,
+  backgroundColor: theme.surface,
+  borderBottomColor: theme.border,
+});
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -537,18 +551,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  dayModalContent: (theme: any) => ({
-    flex: 1,
-    backgroundColor: theme.background,
-  }),
-  dayModalHeader: (theme: any) => ({
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    borderBottomWidth: 1,
-    backgroundColor: theme.surface,
-    borderBottomColor: theme.border,
-  }),
+
   navButton: {
     padding: 8,
     width: 50,
