@@ -1,0 +1,28 @@
+import { Combination } from '../types';
+
+export const COMBINATIONS: Combination[] = [
+  { id: 'IG_P_Bp_E', point1: 'IG', point2: 'P', point3: 'Bp', point4: 'E', connectionType: 'empe' },
+  { id: 'IG_P_R_B', point1: 'IG', point2: 'P', point3: 'R', point4: 'B', connectionType: 'quadrado' },
+  { id: 'IG_Pc_F_E', point1: 'IG', point2: 'Pc', point3: 'F', point4: 'E', connectionType: 'deitado' },
+  { id: 'IG_Pc_R_E', point1: 'IG', point2: 'Pc', point3: 'R', point4: 'E', connectionType: 'deitado' },
+  { id: 'TA_Pc_Bp_E', point1: 'TA', point2: 'Pc', point3: 'Bp', point4: 'E', connectionType: 'quadrado' },
+  { id: 'TA_Pc_F_VB', point1: 'TA', point2: 'Pc', point3: 'F', point4: 'VB', connectionType: 'empe' },
+  { id: 'TA_C_Bp_VB', point1: 'TA', point2: 'C', point3: 'Bp', point4: 'VB', connectionType: 'deitado' },
+  { id: 'TA_C_R_VB', point1: 'TA', point2: 'C', point3: 'R', point4: 'VB', connectionType: 'deitado' },
+  { id: 'ID_P_Bp_B', point1: 'ID', point2: 'P', point3: 'Bp', point4: 'B', connectionType: 'deitado' },
+  { id: 'ID_P_F_B', point1: 'ID', point2: 'P', point3: 'F', point4: 'B', connectionType: 'deitado' },
+  { id: 'ID_C_F_VB', point1: 'ID', point2: 'C', point3: 'F', point4: 'VB', connectionType: 'quadrado' },
+  { id: 'ID_C_R_B', point1: 'ID', point2: 'C', point3: 'R', point4: 'B', connectionType: 'empe' },
+  { id: 'P_IG_B_R', point1: 'P', point2: 'IG', point3: 'B', point4: 'R', connectionType: 'quadrado' },
+  { id: 'P_IG_E_Bp', point1: 'P', point2: 'IG', point3: 'E', point4: 'Bp', connectionType: 'empe' },
+  { id: 'P_ID_B_Bp', point1: 'P', point2: 'ID', point3: 'B', point4: 'Bp', connectionType: 'deitado' },
+  { id: 'P_ID_B_F', point1: 'P', point2: 'ID', point3: 'B', point4: 'F', connectionType: 'deitado' },
+  { id: 'Pc_IG_E_F', point1: 'Pc', point2: 'IG', point3: 'E', point4: 'F', connectionType: 'deitado' },
+  { id: 'Pc_IG_E_R', point1: 'Pc', point2: 'IG', point3: 'E', point4: 'R', connectionType: 'deitado' },
+  { id: 'Pc_TA_E_Bp', point1: 'Pc', point2: 'TA', point3: 'E', point4: 'Bp', connectionType: 'quadrado' },
+  { id: 'Pc_TA_VB_F', point1: 'Pc', point2: 'TA', point3: 'VB', point4: 'F', connectionType: 'empe' },
+  { id: 'C_TA_VB_Bp', point1: 'C', point2: 'TA', point3: 'VB', point4: 'Bp', connectionType: 'deitado' },
+  { id: 'C_TA_VB_R', point1: 'C', point2: 'TA', point3: 'VB', point4: 'R', connectionType: 'deitado' },
+  { id: 'C_ID_B_R', point1: 'C', point2: 'ID', point3: 'B', point4: 'R', connectionType: 'empe' },
+  { id: 'C_ID_VB_F', point1: 'C', point2: 'ID', point3: 'VB', point4: 'F', connectionType: 'quadrado' },
+];

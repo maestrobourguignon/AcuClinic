@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
 import { PointsExplorerScreen } from '../screens/PointsExplorerScreen';
+import { BalanceScreen } from '../balance/screens/BalanceScreen';
 import { FormulasScreen } from '../screens/FormulasScreen';
 import { ClinicalRecordsScreen } from '../screens/ClinicalRecordsScreen';
 import { ScheduleScreen } from '../screens/ScheduleScreen';
@@ -26,6 +27,9 @@ export const AppNavigator = () => {
             switch (route.name) {
               case 'Puntos':
                 iconName = focused ? 'locate' : 'locate-outline';
+                break;
+              case 'Balance':
+                iconName = focused ? 'swap-horizontal' : 'swap-horizontal-outline';
                 break;
               case 'Fórmulas':
                 iconName = focused ? 'medical' : 'medical-outline';
@@ -77,6 +81,13 @@ export const AppNavigator = () => {
           options={{
             title: 'Explorador de Puntos',
             headerTitle: 'Explorador de Puntos',
+          }}
+        />
+        <Tab.Screen
+          name="Balance"
+          component={BalanceScreen}
+          options={{
+            title: 'Balance',
           }}
         />
         <Tab.Screen
